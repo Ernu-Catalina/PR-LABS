@@ -15,7 +15,7 @@ def extract_additional_data(product_url):
         print(f"Failed to retrieve the product page. Status code: {response.status_code}")
         return "N/A"
 
-
+    1
 def validate_price(price_str):
     """Validate price and ensure it is an integer after removing the last two zeros."""
     # Remove 'Lei' and any other non-numeric characters
