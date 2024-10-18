@@ -1,8 +1,12 @@
 import socket
 import ssl
-from bs4 import BeautifulSoup
+import re
+import json
+import xml.etree.ElementTree as ET
+import xml.dom.minidom as minidom
 
-# Function to send HTTPS requests and get HTML content
+
+# Function to send HTTPS request and get the HTML content
 def send_https_request(host, path):
     context = ssl.create_default_context()
     sock = socket.create_connection((host, 443))
@@ -19,97 +23,85 @@ def send_https_request(host, path):
         response += data
 
     secure_sock.close()
+
     response_str = response.decode()
 
     headers, body = response_str.split("\r\n\r\n", 1)
+
     return body
 
-# Function to parse products from HTML content
-def parse_products(html):
+
+# Function to parse the HTML and extract product data
+def parse_html(html):
+    product_pattern = re.compile(r'<h4 class="name"><a href="(?P<url>[^"]+)">(?P<name>[^<]+)</a></h4>')
+    price_pattern = re.compile(r'<span class="price-old">(?P<old_price>[^<]+)</span> <span class="price-new"[^>]*>(?P<new_price>[^<]+)</span>')
+
     products = []
-    soup = BeautifulSoup(html, 'html.parser')
-    product_divs = soup.find_all('div', class_='product-grid-item')
+    for product_match in product_pattern.finditer(html):
+        product_info = product_match.groupdict()
 
-    for product_div in product_divs:
-        product_link = product_div.find('a')['href']
-        product_image = product_div.find('img')['src']
+        # Search for prices associated with this product
+        price_match = price_pattern.search(html, product_match.end())
+        if price_match:
+            product_info.update(price_match.groupdict())
+        else:
+            product_info['old_price'] = None
+            product_info['new_price'] = None
 
-        name = product_div.find('img')['alt'] if product_div.find('img') else "Unknown"
-        description = product_div.find('h4').get_text(strip=True) if product_div.find('h4') else "No description available"
-
-        price_info = product_div.find('p', class_='price')
-        new_price = None
-        old_price = None
-
-        if price_info:
-            price_text = price_info.get_text(strip=True)
-            price_parts = price_text.split(' ')
-            for part in price_parts:
-                if 'old' in part.lower():
-                    old_price_str = part.replace('Old:', '').replace('€', '').strip()
-                    try:
-                        old_price = float(old_price_str)
-                    except ValueError:
-                        old_price = None
-                elif 'price' in part.lower():
-                    new_price_str = part.replace('Price:', '').replace('€', '').strip()
-                    try:
-                        new_price = float(new_price_str)
-                    except ValueError:
-                        new_price = None
-
-        product = {
-            'link': product_link,
-            'image': product_image,
-            'name': name,
-            'description': description,
-            'new_price': new_price,
-            'old_price': old_price,
-        }
-        products.append(product)
-        print(f"Processed product: {name}, Description: {description}, New Price: {new_price}, Old Price: {old_price}")
+        products.append(product_info)
 
     return products
 
-# Function to serialize data to JSON format
-def serialize_to_json(products):
-    json_output = "["
-    for product in products:
-        product_json = f"""{{
-            "link": "{product['link']}",
-            "image": "{product['image']}",
-            "name": "{product['name']}",
-            "description": "{product['description']}",
-            "new_price": {product['new_price'] if product['new_price'] is not None else 'null'},
-            "old_price": {product['old_price'] if product['old_price'] is not None else 'null'}
-        }}"""
-        json_output += product_json + ","
-    json_output = json_output.rstrip(',') + "]"  # Remove trailing comma
-    print("JSON Output:")
-    print(json_output)
 
-# Function to serialize data to XML format
-def serialize_to_xml(products):
-    xml_output = "<products>\n"
-    for product in products:
-        xml_output += f"  <product>\n"
-        xml_output += f"    <link>{product['link']}</link>\n"
-        xml_output += f"    <image>{product['image']}</image>\n"
-        xml_output += f"    <name>{product['name']}</name>\n"
-        xml_output += f"    <description>{product['description']}</description>\n"
-        xml_output += f"    <new_price>{product['new_price'] if product['new_price'] is not None else 'null'}</new_price>\n"
-        xml_output += f"    <old_price>{product['old_price'] if product['old_price'] is not None else 'null'}</old_price>\n"
-        xml_output += f"  </product>\n"
-    xml_output += "</products>"
-    print("XML Output:")
-    print(xml_output)
+# Function to generate JSON from product data
+def generate_json(products):
+    return json.dumps(products, indent=4)
 
-# Main execution
+
+# Function to generate XML from product data
+def generate_xml(products):
+    root = ET.Element("products")
+
+    for product in products:
+        product_elem = ET.SubElement(root, "product")
+
+        name_elem = ET.SubElement(product_elem, "name")
+        name_elem.text = product["name"]
+
+        url_elem = ET.SubElement(product_elem, "url")
+        url_elem.text = product["url"]
+
+        old_price_elem = ET.SubElement(product_elem, "old_price")
+        old_price_elem.text = product["old_price"] if product["old_price"] else "N/A"
+
+        new_price_elem = ET.SubElement(product_elem, "new_price")
+        new_price_elem.text = product["new_price"] if product["new_price"] else "N/A"
+
+    return root
+
+
+# Function to pretty-print the XML
+def pretty_print_xml(element):
+    rough_string = ET.tostring(element, encoding='utf8', method='xml')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
+
+# Host and path to send the request to
 host = 'educationalcentre.md'
 path = '/shop/index.php?route=product/category&path=2350_2355_2361'
-html_content = send_https_request(host, path)
-products = parse_products(html_content)
 
-# Serialize products to JSON and XML
-serialize_to_json(products)
-serialize_to_xml(products)
+# Fetch the HTML content
+html_content = send_https_request(host, path)
+
+# Parse the HTML to extract product information
+products = parse_html(html_content)
+
+# Generate JSON and XML from the product data
+json_output = generate_json(products)
+xml_tree = generate_xml(products)
+xml_output = pretty_print_xml(xml_tree)
+
+# Print the JSON and XML output
+print("JSON Output:\n", json_output)
+print("\nXML Output:\n", xml_output)
