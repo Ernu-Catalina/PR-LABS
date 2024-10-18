@@ -51,15 +51,10 @@ def serialize_products(products):
     serialized_data = []
     for product in products:
         serialized_line = (
-            "{*{\n"
-            "---\n"
-            f"[Book Title <3: {product['name']}]\n"
-            "---\n"
-            f"[Book Price: {product['new_price']}]\n"
-            "---\n"
-            f"[Book Description: {product['description']}]\n"
-            "---\n"
-            "}*}\n"
+            f"Product Name: {product['name']}\n"
+            f"Price: {product['new_price']}\n"
+            f"Description: {product['description']}\n"
+            f"{'-' * 30}\n"  # Separator for clarity
         )
         serialized_data.append(serialized_line)
     return ''.join(serialized_data)
@@ -68,15 +63,15 @@ def serialize_products(products):
 # Custom deserialization function to create object representation
 def deserialize_products(serialized_data):
     products = []
-    product_blocks = serialized_data.strip().split('}*}\n')
+    product_blocks = serialized_data.strip().split('-' * 30)
 
     for block in product_blocks:
         if block.strip():  # Check if the block is not empty
             lines = block.strip().splitlines()
-            if len(lines) >= 5:
-                name = lines[2].replace("[Book Title <3: ", "").replace("]", "").strip()
-                price = lines[4].replace("[Book Price: ", "").replace("]", "").strip()
-                description = lines[6].replace("[Book Description: ", "").replace("]", "").strip()
+            if len(lines) >= 3:
+                name = lines[0].replace("Product Name: ", "").strip()
+                price = lines[1].replace("Price: ", "").strip()
+                description = lines[2].replace("Description: ", "").strip()
 
                 # Create a product object as a dictionary
                 products.append({
@@ -109,4 +104,4 @@ deserialized_products = deserialize_products(serialized_output)
 # Print the reconstructed object representation of products
 print("\nReconstructed Products as Objects:")
 for product in deserialized_products:
-    print(f"---\nProduct Name: {product['name']}, Price: {product['price']}, Description: {product['description']}")
+    print(f"Name: {product['name']}, Price: {product['price']}, Description: {product['description']}")
