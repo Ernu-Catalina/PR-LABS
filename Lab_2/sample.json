@@ -1,0 +1,40 @@
+[{
+        "created_at": "Mon, 28 Oct 2024 08:25:42 GMT",
+        "description": "A topic-based course, perfect for maintaining the interest and motivation of young teenagers.Update ..",
+        "id": 1,
+        "name": "Adventures Elementary Student's Book",
+        "new_price": 330.0,
+        "old_price": 99.0
+    },
+    {
+        "created_at": "Mon, 28 Oct 2024 08:25:42 GMT",
+        "description": "A\r\nsix-level course which offers a clear, structural syllabus, carefully paced progression,\r\nand liv..",
+        "id": 2,
+        "name": "Get Set Go! Level 1 Pupil's Book",
+        "new_price": 280.0,
+        "old_price": 98.0
+    },
+    {
+        "created_at": "Mon, 28 Oct 2024 08:25:42 GMT",
+        "description": "A multi-level course, supported by a broad range of supplementary material, which targets both accur..",
+        "id": 3,
+        "name": "Headway Upper-Intermediate Student's Book",
+        "new_price": 300.0,
+        "old_price": 60.0
+    },
+    {
+        "created_at": "Mon, 28 Oct 2024 08:25:42 GMT",
+        "description": "ISBN:9781905248001",
+        "id": 4,
+        "name": "Quick Smart English Advanced Student Book & Workbook",
+        "new_price": 250.0,
+        "old_price": 175.0
+    },
+    {
+        "created_at": "Mon, 28 Oct 2024 08:25:42 GMT",
+        "description": "Un giorno diverso (A2-B1) racconta una giornata indimenticabile di un comune impiegato. Pietro,..",
+        "id": 5,
+        "name": "Platform 1 Student's Book",
+        "new_price": 330.0,
+        "old_price": 99.0
+    }]

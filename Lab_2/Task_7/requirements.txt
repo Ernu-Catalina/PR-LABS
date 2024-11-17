@@ -1,0 +1,6 @@
+flask
+flask-sqlalchemy
+psycopg2-binary
+Flask==2.0.1
+Flask-SQLAlchemy==2.5.1
+

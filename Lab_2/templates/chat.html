@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ room }} - Chat Room</title>
+</head>
+<body>
+    <h1>{{ room }} Chat Room</h1>
+    <div id="messages">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+
+    <form action="" method="POST">
+        <input type="text" id="username" placeholder="Your Name" required><br><br>
+        <input type="text" id="message" placeholder="Type a message" required><br><br>
+        <button type="submit" id="sendButton">Send</button>
+    </form>
+
+    <script>
+        var socket = io.connect('http://127.0.0.1:5002');
+        var room = "{{ room }}";
+        var username = prompt("Enter your username");
+
+        socket.emit('join', {username: username, room: room});
+
+        socket.on('message', function(msg) {
+            document.getElementById('messages').innerHTML += '<p>' + msg + '</p>';
+        });
+
+        document.getElementById('sendButton').addEventListener('click', function() {
+            var message = document.getElementById('message').value;
+            socket.emit('message', {username: username, room: room, message: message});
+            document.getElementById('message').value = ''; // Clear input field
+        });
+    </script>
+</body>
+</html>
